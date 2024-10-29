@@ -14,10 +14,10 @@ function App() {
         webSocketClientRef.current.sendMessage(word);
     };
 
-    // Update the score by adding the points received from the server
-    const handleScoreUpdate = (points) => {
-        // Use a functional update to ensure we're adding to the previous score
-        setScore((prevScore) => prevScore + points);
+    // Set the score directly to the total score sent by the server
+    const handleScoreUpdate = (totalScore) => {
+        console.log(`Setting score to total score from server: ${totalScore}`);
+        setScore(totalScore);
     };
 
     // Create a reference to the WebSocketClient

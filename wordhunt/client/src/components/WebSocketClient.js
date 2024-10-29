@@ -24,7 +24,7 @@ const WebSocketClient = forwardRef(({ onScoreUpdate }, ref) => {
                     try {
                         console.log('Received message from server:', response.body);
                         const message = JSON.parse(response.body); // Parse the JSON message
-                        onScoreUpdate(message.points);
+                        onScoreUpdate(message.totalScore);
                         console.log('Updated score:', message.totalScore);
                     } catch (error) {
                         console.error('Error parsing JSON:', error);
