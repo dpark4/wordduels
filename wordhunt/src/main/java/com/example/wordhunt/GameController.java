@@ -1,7 +1,9 @@
 package com.example.wordhunt;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
@@ -13,25 +15,63 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class GameController {
     private GameState gameState = new GameState();
     private ObjectMapper objectMapper = new ObjectMapper(); // For JSON conversion
+    
+    @MessageMapping("/initializePlayer")
+    @SendTo("/topic/playerInit")
+    public String initializePlayer(String playerName) {
+        String playerId = UUID.randomUUID().toString();
+        Player newPlayer = new Player(playerId, playerName);
 
+        gameState.addPlayer(playerId, newPlayer);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("playerId", playerId);
+        response.put("playerName", playerName);
+        
+        try {
+            return objectMapper.writeValueAsString(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "{\"error\": \"Unable to initialize player\"}";
+        }
+    }
+
+    // Server-side in GameController
     @MessageMapping("/submitWord")
     @SendTo("/topic/leaderboard")
-    public String processWordSubmission(String word) {
-        int points = word.length(); // Points based on word length
-        String playerId = "player1"; // Placeholder player ID
+    public String processWordSubmission(Map<String, Object> submissionData) {
+        String playerId = (String) submissionData.get("playerId");
+        String submittedWord = (String) submissionData.get("word");
+        List<Map<String, Object>> positions = (List<Map<String, Object>>) submissionData.get("positions");
 
-        // Update the player's score
-        Player player = gameState.getPlayers().getOrDefault(playerId, new Player(playerId, "Player 1"));
+        // Validate the player
+        Player player = gameState.getPlayers().get(playerId);
+        if (player == null) {
+            return "{\"error\": \"Player not found\"}";
+        }
+
+        // Combine letters from positions to verify the word
+        StringBuilder serverWord = new StringBuilder();
+        for (Map<String, Object> position : positions) {
+            serverWord.append((String) position.get("letter"));
+        }
+
+        // Validate word consistency
+        if (!serverWord.toString().equals(submittedWord)) {
+            return "{\"error\": \"Submitted word does not match letter positions\"}";
+        }
+
+        // Calculate points and update the player's score
+        int points = submittedWord.length();
         player.addScore(points);
-        gameState.addPlayer(playerId, player);
 
-        // Create a response object
+        // Prepare response
         Map<String, Object> response = new HashMap<>();
         response.put("playerName", player.getName());
         response.put("points", points);
         response.put("totalScore", player.getScore());
+        response.put("highlightedLetters", positions);
 
-        // Convert response to JSON string
         try {
             return objectMapper.writeValueAsString(response);
         } catch (Exception e) {
@@ -39,4 +79,5 @@ public class GameController {
             return "{\"error\": \"Unable to create response\"}";
         }
     }
+
 }
