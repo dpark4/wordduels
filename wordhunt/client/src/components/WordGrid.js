@@ -1,54 +1,73 @@
 import React, { useState } from 'react';
 import './WordGrid.css';
 
-const WordGrid = ({ onWordFormed }) => {
-    const letters = [
+const generateGrid = () => {
+    // Define the grid with letters at specific positions
+    return [
         ['A', 'B', 'C', 'D'],
         ['E', 'F', 'G', 'H'],
         ['I', 'J', 'K', 'L'],
         ['M', 'N', 'O', 'P']
     ];
+};
 
-    const [selectedLetters, setSelectedLetters] = useState([]);
+const WordGrid = ({ onWordFormed }) => {
+    const [grid] = useState(generateGrid()); // Generate the grid only once
+    const [selectedPositions, setSelectedPositions] = useState({});
 
-    const handleLetterClick = (letter) => {
-        console.log('Letter clicked:', letter);
-        setSelectedLetters((prevSelectedLetters) => {
-            const newSelection = [...prevSelectedLetters, letter];
-            console.log('Updated selected letters:', newSelection);
-            return newSelection;
+    const handleLetterClick = (row, col) => {
+        const positionKey = `${row},${col}`;
+    
+        setSelectedPositions((prev) => {
+            if (positionKey in prev) { // Check if the positionKey exists in prev
+                // Deselect if already selected
+                const newSelection = { ...prev };
+                delete newSelection[positionKey];
+                return newSelection;
+            } else {
+                // Select if not already selected
+                return {
+                    ...prev,
+                    [positionKey]: grid[row][col],
+                };
+            }
         });
     };
     
-    
 
     const handleSubmitWord = () => {
-        // Form the word from the selected letters and send it to the parent component
-        const formedWord = selectedLetters.join('');
-        onWordFormed(formedWord);
-        console.log('Selected letters:', selectedLetters);
+        // Create the word from selected positions
+        const submissionData = {
+            playerId: 'player1', // Placeholder; replace with actual player ID
+            word: Object.values(selectedPositions).join(''), // Concatenate letters for word
+            positions: selectedPositions, // Send positions to server
+        };
+        onWordFormed(submissionData);
+
         // Clear the selection after submitting
-        setSelectedLetters([]);
-        console.log('Selected letters:', selectedLetters);
+        setSelectedPositions({});
     };
 
     return (
         <div className="word-grid">
-            {letters.map((row, rowIndex) => (
+            {grid.map((row, rowIndex) => (
                 <div key={rowIndex} className="word-grid-row">
-                    {row.map((letter, colIndex) => (
-                        <div
-                            key={colIndex}
-                            className={`word-grid-cell ${selectedLetters.includes(letter) ? 'selected' : ''}`}
-                            onClick={() => handleLetterClick(letter)}
-                        >
-                            {letter}
-                        </div>
-                    ))}
+                    {row.map((letter, colIndex) => {
+                        const positionKey = `${rowIndex},${colIndex}`;
+                        const isSelected = positionKey in selectedPositions;
+                        return (
+                            <div
+                                key={colIndex}
+                                className={`word-grid-cell ${isSelected ? 'selected' : ''}`}
+                                onClick={() => handleLetterClick(rowIndex, colIndex)}
+                            >
+                                {letter}
+                            </div>
+                        );
+                    })}
                 </div>
             ))}
-            {/* <button onClick={handleSubmitWord} disabled={selectedLetters.length === 0}> */}
-            <button onClick={() => { console.log('Button clicked'); handleSubmitWord(); }} disabled={selectedLetters.length === 0}>
+            <button onClick={handleSubmitWord} disabled={Object.keys(selectedPositions).length === 0}>
                 Submit Word
             </button>
         </div>
