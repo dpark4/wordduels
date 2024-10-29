@@ -47,11 +47,11 @@ const WebSocketClient = forwardRef(({ playerName, onPlayerInit, onScoreUpdate },
     }, [onPlayerInit, onScoreUpdate]);
 
     useImperativeHandle(ref, () => ({
-        submitWord: (word, playerId) => {
+        submitWord: (word, playerId, positions) => {
             if (stompClient && stompClient.connected) {
-                const message = JSON.stringify({ playerId, word });
+                const message = JSON.stringify({ playerId, word, positions });
                 stompClient.send('/app/submitWord', {}, message);
-                console.log(`Sent submitWord message with word: ${word}`);
+                console.log(`Sent submitWord message with word: ${word} and positions:`, positions);
             } else {
                 console.warn('WebSocket connection is not established');
             }

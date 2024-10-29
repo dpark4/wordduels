@@ -1,7 +1,6 @@
 package com.example.wordhunt;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -42,36 +41,36 @@ public class GameController {
     public String processWordSubmission(Map<String, Object> submissionData) {
         String playerId = (String) submissionData.get("playerId");
         String submittedWord = (String) submissionData.get("word");
-        List<Map<String, Object>> positions = (List<Map<String, Object>>) submissionData.get("positions");
-
+        Map<String, String> positions = (Map<String, String>) submissionData.get("positions");
+    
         // Validate the player
         Player player = gameState.getPlayers().get(playerId);
         if (player == null) {
             return "{\"error\": \"Player not found\"}";
         }
-
+    
         // Combine letters from positions to verify the word
         StringBuilder serverWord = new StringBuilder();
-        for (Map<String, Object> position : positions) {
-            serverWord.append((String) position.get("letter"));
+        for (String positionKey : positions.keySet()) {
+            serverWord.append(positions.get(positionKey));
         }
-
+    
         // Validate word consistency
         if (!serverWord.toString().equals(submittedWord)) {
             return "{\"error\": \"Submitted word does not match letter positions\"}";
         }
-
+    
         // Calculate points and update the player's score
         int points = submittedWord.length();
         player.addScore(points);
-
+    
         // Prepare response
         Map<String, Object> response = new HashMap<>();
         response.put("playerName", player.getName());
         response.put("points", points);
         response.put("totalScore", player.getScore());
         response.put("highlightedLetters", positions);
-
+    
         try {
             return objectMapper.writeValueAsString(response);
         } catch (Exception e) {

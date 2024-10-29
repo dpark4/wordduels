@@ -15,10 +15,11 @@ function App() {
         console.log(`Initialized player: ${name} with ID: ${id}`);
     }, []);
 
-    const handleWordFormed = (word) => {
-        console.log(`Word formed: ${word}`);
+    const handleWordFormed = (submissionData) => {
+        console.log(`Word formed: ${submissionData.word}`, submissionData.positions);
         if (webSocketClientRef.current && playerId) {
-            webSocketClientRef.current.submitWord(word, playerId);
+            // Pass word and positions to WebSocketClient's submitWord
+            webSocketClientRef.current.submitWord(submissionData.word, playerId, submissionData.positions);
         } else {
             console.warn("Player not initialized, can't submit word");
         }
@@ -32,7 +33,7 @@ function App() {
                 <h1>Word Hunt Game</h1>
             </header>
             <ScoreBoard score={score} />
-            <WordGrid onWordFormed={handleWordFormed} />
+            <WordGrid onWordFormed={handleWordFormed} playerId={playerId} />
             <WebSocketClient
                 ref={webSocketClientRef}
                 playerName={playerName}

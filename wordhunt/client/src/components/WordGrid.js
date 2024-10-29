@@ -12,8 +12,8 @@ const generateGrid = () => {
     return Array.from({ length: 4 }, () => Array.from({ length: 4 }, () => getRandomLetter()));
 };
 
-const WordGrid = ({ onWordFormed }) => {
-    const [grid] = useState(generateGrid); // Generate the grid only once per render
+const WordGrid = ({ onWordFormed, playerId }) => {
+    const [grid] = useState(generateGrid()); // Generate the grid only once per render
     const [selectedPositions, setSelectedPositions] = useState({});
 
     const handleLetterClick = (row, col) => {
@@ -35,7 +35,7 @@ const WordGrid = ({ onWordFormed }) => {
 
     const handleSubmitWord = () => {
         const submissionData = {
-            playerId: 'player1', // Placeholder; replace with actual player ID
+            playerId, // Use playerId from props
             word: Object.values(selectedPositions).join(''), // Concatenate letters for word
             positions: selectedPositions, // Send positions to server
         };
@@ -44,7 +44,7 @@ const WordGrid = ({ onWordFormed }) => {
     };
 
     return (
-        <div className="word-grid" key={Math.random()}>
+        <div className="word-grid">
             {grid.map((row, rowIndex) => (
                 <div key={rowIndex} className="word-grid-row">
                     {row.map((letter, colIndex) => {
