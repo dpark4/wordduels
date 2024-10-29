@@ -1,31 +1,30 @@
 import React, { useState } from 'react';
 import './WordGrid.css';
 
+// Helper function to generate a random letter
+const getRandomLetter = () => {
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    return letters[Math.floor(Math.random() * letters.length)];
+};
+
+// Function to generate a grid with random letters
 const generateGrid = () => {
-    // Define the grid with letters at specific positions
-    return [
-        ['A', 'B', 'C', 'D'],
-        ['E', 'F', 'G', 'H'],
-        ['I', 'J', 'K', 'L'],
-        ['M', 'N', 'O', 'P']
-    ];
+    return Array.from({ length: 4 }, () => Array.from({ length: 4 }, () => getRandomLetter()));
 };
 
 const WordGrid = ({ onWordFormed }) => {
-    const [grid] = useState(generateGrid()); // Generate the grid only once
+    const [grid] = useState(generateGrid); // Generate the grid only once per render
     const [selectedPositions, setSelectedPositions] = useState({});
 
     const handleLetterClick = (row, col) => {
         const positionKey = `${row},${col}`;
-    
+
         setSelectedPositions((prev) => {
-            if (positionKey in prev) { // Check if the positionKey exists in prev
-                // Deselect if already selected
+            if (positionKey in prev) {
                 const newSelection = { ...prev };
                 delete newSelection[positionKey];
                 return newSelection;
             } else {
-                // Select if not already selected
                 return {
                     ...prev,
                     [positionKey]: grid[row][col],
@@ -33,23 +32,19 @@ const WordGrid = ({ onWordFormed }) => {
             }
         });
     };
-    
 
     const handleSubmitWord = () => {
-        // Create the word from selected positions
         const submissionData = {
             playerId: 'player1', // Placeholder; replace with actual player ID
             word: Object.values(selectedPositions).join(''), // Concatenate letters for word
             positions: selectedPositions, // Send positions to server
         };
         onWordFormed(submissionData);
-
-        // Clear the selection after submitting
         setSelectedPositions({});
     };
 
     return (
-        <div className="word-grid">
+        <div className="word-grid" key={Math.random()}>
             {grid.map((row, rowIndex) => (
                 <div key={rowIndex} className="word-grid-row">
                     {row.map((letter, colIndex) => {
