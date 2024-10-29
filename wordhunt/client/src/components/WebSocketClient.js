@@ -2,62 +2,65 @@ import React, { useEffect, useState, forwardRef, useImperativeHandle } from 'rea
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
 
-const WebSocketClient = forwardRef(({ onScoreUpdate }, ref) => {
-    const [connected, setConnected] = useState(false);
+const WebSocketClient = forwardRef(({ playerName, onPlayerInit, onScoreUpdate }, ref) => {
     const [stompClient, setStompClient] = useState(null);
+    const [connected, setConnected] = useState(false);
+    const [initialized, setInitialized] = useState(false); // Boolean to prevent reinitialization
 
     useEffect(() => {
-        // Set up the WebSocket connection
+        if (connected) return; // Prevent reconnection if already connected
+
         const socket = new SockJS('http://localhost:8080/wordhunt');
         const stompClientInstance = Stomp.over(socket);
 
-        // Connect with error handling
-        stompClientInstance.connect(
-            {},
-            (frame) => {
-                console.log('Connected: ' + frame);
-                setConnected(true);
-                setStompClient(stompClientInstance);
+        stompClientInstance.connect({}, (frame) => {
+            console.log('Connected:', frame);
+            setStompClient(stompClientInstance);
+            setConnected(true);
 
-                // Subscribe to the /topic/leaderboard topic
-                stompClientInstance.subscribe('/topic/leaderboard', (response) => {
-                    try {
-                        console.log('Received message from server:', response.body);
-                        const message = JSON.parse(response.body); // Parse the JSON message
-                        onScoreUpdate(message.totalScore);
-                        console.log('Updated score:', message.totalScore);
-                    } catch (error) {
-                        console.error('Error parsing JSON:', error);
-                        console.log('Original response:', response.body);
-                    }
-                });
-                
-                
-            },
-            (error) => {
-                console.error('WebSocket connection error:', error);
+            // Initialize the player only once when connected
+            if (!initialized) {
+                stompClientInstance.send('/app/initializePlayer', {}, playerName);
+                console.log(`Sent initializePlayer message with name: ${playerName}`);
+                setInitialized(true); // Prevent further initialization
             }
-        );
 
-        // Cleanup
+            // Subscribe to player initialization responses
+            stompClientInstance.subscribe('/topic/playerInit', (response) => {
+                const message = JSON.parse(response.body);
+                onPlayerInit(message.playerId, message.playerName);
+            });
+
+            // Subscribe to score updates
+            stompClientInstance.subscribe('/topic/leaderboard', (response) => {
+                const message = JSON.parse(response.body);
+                onScoreUpdate(message.totalScore);
+            });
+        });
+
+        // Cleanup function to disconnect WebSocket on unmount
         return () => {
-            // if (stompClientInstance.connected) {
-            //     stompClientInstance.disconnect();
-            //     console.log('Disconnected from WebSocket server');
-            // }
+            if (stompClientInstance.connected) {
+                stompClientInstance.disconnect();
+                console.log('Disconnected from WebSocket server');
+                setConnected(false);
+                setInitialized(false); // Reset initialization state on disconnect
+            }
         };
-    }, [onScoreUpdate]);
+    }, [connected, initialized, playerName, onPlayerInit, onScoreUpdate]);
 
+    // Expose submitWord to the parent component using useImperativeHandle
     useImperativeHandle(ref, () => ({
-        sendMessage: (word) => {
-            if (connected && stompClient) {
-                console.log('Sending word to server: ' + word);
-                stompClient.send('/app/submitWord', {}, word);
+        submitWord: (word, playerId) => {
+            if (stompClient && stompClient.connected) {
+                const message = JSON.stringify({ playerId, word });
+                stompClient.send('/app/submitWord', {}, message);
+                console.log(`Sent submitWord message with word: ${word}`);
             } else {
                 console.warn('WebSocket connection is not established');
             }
-        },
-    }));
+        }
+    }), [stompClient]);
 
     return <div />;
 });

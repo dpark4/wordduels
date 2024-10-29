@@ -23,7 +23,7 @@ public class GameController {
         Player newPlayer = new Player(playerId, playerName);
 
         gameState.addPlayer(playerId, newPlayer);
-
+        System.out.println("Added player with ID: " + playerId); 
         Map<String, Object> response = new HashMap<>();
         response.put("playerId", playerId);
         response.put("playerName", playerName);
