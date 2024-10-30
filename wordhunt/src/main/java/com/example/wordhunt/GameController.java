@@ -1,5 +1,8 @@
 package com.example.wordhunt;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -15,6 +18,20 @@ public class GameController {
     private GameState gameState = new GameState();
     private ObjectMapper objectMapper = new ObjectMapper(); // For JSON conversion
     
+    // Server-side grid generation
+    public void loadDictionary(Trie trie) {
+        try (BufferedReader br = new BufferedReader(new FileReader("dictionary.txt"))) {
+            String word;
+            while ((word = br.readLine()) != null) {
+                trie.insert(word);
+            }
+        } catch (IOException e) {
+            System.out.println("error reading dictionary file"); 
+            e.printStackTrace();
+        }
+    }    
+
+
     @MessageMapping("/initializePlayer")
     @SendTo("/topic/playerInit")
     public String initializePlayer(String playerName) {
