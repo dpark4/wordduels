@@ -1,8 +1,0 @@
-<!-- jwnl_properties.xml -->
-<?xml version="1.0" encoding="UTF-8"?>
-<jwnl_properties language="en">
-    <dictionary class="net.didion.jwnl.dictionary.FileBackedDictionary">
-        <param name="dictionary_path" value="/dict"/>
-        <!-- Replace /absolute/path/to/dict with the actual path -->
-    </dictionary>
-</jwnl_properties>
