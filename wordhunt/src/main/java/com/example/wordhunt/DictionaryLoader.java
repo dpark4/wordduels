@@ -12,7 +12,10 @@ public class DictionaryLoader {
         try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
             String line;
             while ((line = br.readLine()) != null) {
-                dictionary.add(line.trim().toUpperCase());
+                line = line.trim().toUpperCase();
+                if (line.length() >= 3 && line.length() <= 15) { // Filter for length
+                    dictionary.add(line);
+                }
             }
         }
         return dictionary;

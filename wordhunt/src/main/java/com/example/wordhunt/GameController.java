@@ -21,7 +21,7 @@ public class GameController {
     // Server-side grid generation
     public GameController() {
         try {
-            this.dictionary = DictionaryLoader.loadDictionary("src/main/resources/static/dictionary.txt");
+            this.dictionary = DictionaryLoader.loadDictionary("src/main/resources/static/dictionary2.txt");
             System.out.println("Dictionary loaded with " + dictionary.size() + " words.");
             WordFinder.setDictionary(dictionary);
         } catch (Exception e) {
