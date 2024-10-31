@@ -9,7 +9,7 @@ public class GameState {
     private Map<String, Player> players = new HashMap<>();
     private char[][] grid;
     private Set<String> validWords;
-    public Boolean gridGenerated;
+    private Boolean gridGenerated = false;
 
     // Initialize game state, word grid, etc.
     public char[][] getGrid() {
@@ -21,7 +21,7 @@ public class GameState {
         this.gridGenerated = true;
     }
 
-    public boolean isGenerated() {
+    public boolean isGridGenerated() {
         return gridGenerated;
     }
 

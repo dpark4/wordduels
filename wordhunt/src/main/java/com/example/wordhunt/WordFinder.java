@@ -10,6 +10,10 @@ public class WordFinder {
 
     public static Set<String> dictionary;
 
+    public static void setDictionary(Set<String> dict) {
+        dictionary = dict;
+    }
+
     // Alg for finding all words in the grid
     public static Set<String> findAllWords(char[][] grid) {
         Set<String> foundWords = new HashSet<>();

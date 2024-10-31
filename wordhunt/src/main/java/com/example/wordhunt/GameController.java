@@ -23,6 +23,7 @@ public class GameController {
         try {
             this.dictionary = DictionaryLoader.loadDictionary("src/main/resources/static/dictionary.txt");
             System.out.println("Dictionary loaded with " + dictionary.size() + " words.");
+            WordFinder.setDictionary(dictionary);
         } catch (Exception e) {
             System.out.println("Error loading dictionary: " + e.getMessage());
             e.printStackTrace();
@@ -38,7 +39,7 @@ public class GameController {
         gameState.addPlayer(playerId, newPlayer);
         System.out.println("Added player with ID: " + playerId);
 
-        if (!gameState.isGenerated()) {
+        if (!gameState.isGridGenerated()) {
             int gridSize = 5; // Example grid size, can be dynamic
             char[][] grid = BestGridFinder.findBestGrid(gridSize, 10);
             gameState.setGrid(grid); // Set the generated grid in GameState
