@@ -5,18 +5,30 @@ import java.util.Map;
 import java.util.Set;
 
 public class GameState {
+
     private Map<String, Player> players = new HashMap<>();
-    private String[][] wordGrid;
+    private char[][] grid;
     private Set<String> validWords;
+    public Boolean gridGenerated;
 
     // Initialize game state, word grid, etc.
-
-    public String[][] getWordGrid() {
-        return wordGrid;
+    public char[][] getGrid() {
+        return grid;
     }
 
-    public void setGrid(String[][] wordGrid) {
-        this.wordGrid = wordGrid;
+    public void setGrid(char[][] grid) {
+        this.grid = grid;
+        this.gridGenerated = true;
+    }
+
+    public boolean isGenerated() {
+        return gridGenerated;
+    }
+
+    public void resetGrid(char[][] grid) {
+        this.grid = null;
+        // maybe change this later
+        this.gridGenerated = false;
     }
 
     public Set<String> getValidWords() {
@@ -34,7 +46,6 @@ public class GameState {
     public void addPlayer(String playerId, Player player) {
         players.put(playerId, player);
     }
-
 
     // Additional game state management methods
 }
