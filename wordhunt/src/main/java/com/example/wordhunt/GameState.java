@@ -6,12 +6,11 @@ import java.util.Set;
 
 public class GameState {
 
-    private Map<String, Player> players = new HashMap<>();
+    private final Map<String, Player> players = new HashMap<>();
     private char[][] grid;
     private Set<String> validWords;
-    private Boolean gridGenerated = false;
+    private boolean gridGenerated = false;
 
-    // Initialize game state, word grid, etc.
     public char[][] getGrid() {
         return grid;
     }
@@ -23,12 +22,6 @@ public class GameState {
 
     public boolean isGridGenerated() {
         return gridGenerated;
-    }
-
-    public void resetGrid(char[][] grid) {
-        this.grid = null;
-        // maybe change this later
-        this.gridGenerated = false;
     }
 
     public Set<String> getValidWords() {
@@ -46,6 +39,4 @@ public class GameState {
     public void addPlayer(String playerId, Player player) {
         players.put(playerId, player);
     }
-
-    // Additional game state management methods
 }

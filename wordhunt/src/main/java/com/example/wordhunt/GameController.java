@@ -43,6 +43,8 @@ public class GameController {
             int gridSize = 5; // Example grid size, can be dynamic
             char[][] grid = BestGridFinder.findBestGrid(gridSize, 10);
             gameState.setGrid(grid); // Set the generated grid in GameState
+            Set<String> validWords = WordFinder.findAllWords(grid);
+            gameState.setValidWords(validWords); // Store valid words
             System.out.println("Generated new grid for the game.");
         } else {
             System.out.println("Reusing existing grid.");
@@ -52,7 +54,7 @@ public class GameController {
         response.put("playerId", playerId);
         response.put("playerName", playerName);
         response.put("grid", gameState.getGrid());
-
+        response.put("validWords", gameState.getValidWords());
         try {
             return objectMapper.writeValueAsString(response);
         } catch (Exception e) {
