@@ -32,7 +32,11 @@ const WebSocketClient = forwardRef(({ playerName, onPlayerInit, onScoreUpdate },
 
             stompClientInstance.subscribe('/topic/leaderboard', (response) => {
                 const message = JSON.parse(response.body);
-                onScoreUpdate(message.totalScore);
+                if (message.error) {
+                    console.error(message.error);
+                } else {
+                    onScoreUpdate(message.totalScore);
+                }
             });
         });
 

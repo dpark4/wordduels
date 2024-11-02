@@ -71,13 +71,12 @@ public class GameController {
         String playerId = (String) submissionData.get("playerId");
         String submittedWord = (String) submissionData.get("word");
         Map<String, String> positions = (Map<String, String>) submissionData.get("positions");
-
         // Validate the player
         Player player = gameState.getPlayers().get(playerId);
         if (player == null) {
             return "{\"error\": \"Player not found\"}";
         }
-
+        Set<String> submittedWords = player.getSubmittedWords();
         // Combine letters from positions to verify the word
         StringBuilder serverWord = new StringBuilder();
         for (String positionKey : positions.keySet()) {
@@ -92,6 +91,8 @@ public class GameController {
         if (!gameState.getValidWords().contains(submittedWord)) {
             return "{\"error\": \"Invalid word\"}";
         }
+        submittedWords.add(submittedWord);
+        player.setSubmittedWords(submittedWords);
 
         int points = submittedWord.length();
         player.addScore(points);
