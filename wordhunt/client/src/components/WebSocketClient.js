@@ -27,7 +27,7 @@ const WebSocketClient = forwardRef(({ playerName, onPlayerInit, onScoreUpdate },
 
             stompClientInstance.subscribe('/topic/playerInit', (response) => {
                 const message = JSON.parse(response.body);
-                onPlayerInit(message.playerId, message.playerName);
+                onPlayerInit(message.playerId, message.playerName, message.grid);
             });
 
             stompClientInstance.subscribe('/topic/leaderboard', (response) => {

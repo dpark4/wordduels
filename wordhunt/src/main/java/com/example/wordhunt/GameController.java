@@ -54,7 +54,8 @@ public class GameController {
         response.put("playerId", playerId);
         response.put("playerName", playerName);
         response.put("grid", gameState.getGrid());
-        response.put("validWords", gameState.getValidWords());
+        // don't need to send valid words to the client, handled in server
+        // response.put("validWords", gameState.getValidWords());
         try {
             return objectMapper.writeValueAsString(response);
         } catch (Exception e) {
@@ -88,7 +89,10 @@ public class GameController {
             return "{\"error\": \"Submitted word does not match letter positions\"}";
         }
 
-        // Calculate points and update the player's score
+        if (!gameState.getValidWords().contains(submittedWord)) {
+            return "{\"error\": \"Invalid word\"}";
+        }
+
         int points = submittedWord.length();
         player.addScore(points);
 
@@ -97,7 +101,7 @@ public class GameController {
         response.put("playerName", player.getName());
         response.put("points", points);
         response.put("totalScore", player.getScore());
-        response.put("highlightedLetters", positions);
+        // response.put("highlightedLetters", positions);
 
         try {
             return objectMapper.writeValueAsString(response);

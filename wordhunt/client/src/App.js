@@ -7,11 +7,14 @@ import WebSocketClient from './components/WebSocketClient';
 function App() {
     const [playerId, setPlayerId] = useState(null);
     const [playerName, setPlayerName] = useState("Player 1");
+    const [grid, setGrid] = useState([]);
     const [score, setScore] = useState(0);
     const webSocketClientRef = useRef();
 
-    const handlePlayerInit = useCallback((id, name) => {
+    const handlePlayerInit = useCallback((id, name, grid) => {
         setPlayerId(id);
+        setPlayerName(name);
+        setGrid(grid);
         console.log(`Initialized player: ${name} with ID: ${id}`);
     }, []);
 
@@ -33,7 +36,7 @@ function App() {
                 <h1>Word Hunt Game</h1>
             </header>
             <ScoreBoard score={score} />
-            <WordGrid onWordFormed={handleWordFormed} playerId={playerId} />
+            <WordGrid grid={grid} onWordFormed={handleWordFormed} playerId={playerId} />
             <WebSocketClient
                 ref={webSocketClientRef}
                 playerName={playerName}
