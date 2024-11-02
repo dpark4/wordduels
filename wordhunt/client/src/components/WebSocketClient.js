@@ -1,6 +1,7 @@
 import React, { useEffect, useState, forwardRef, useImperativeHandle, useRef } from 'react';
 import SockJS from 'sockjs-client';
-import Stomp from 'stompjs';
+// import Stomp from 'stompjs';
+import {Client as StompClient } from '@stomp/stompjs';
 
 const WebSocketClient = forwardRef(({ playerName, onPlayerInit, onScoreUpdate }, ref) => {
     const [stompClient, setStompClient] = useState(null);
@@ -12,7 +13,11 @@ const WebSocketClient = forwardRef(({ playerName, onPlayerInit, onScoreUpdate },
         if (connectedRef.current) return;
 
         const socket = new SockJS('http://localhost:8080/wordhunt');
-        const stompClientInstance = Stomp.over(socket);
+        const stompClientInstance = new StompClient({
+            webSocketFactory: () => socket,
+            reconnectDelay: 5000,
+            debug: (str) => console.log(str),
+        });
 
         stompClientInstance.connect({}, (frame) => {
             console.log('Connected:', frame);

@@ -1,0 +1,28 @@
+.results-container {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;
+}
+
+.results-column {
+    width: 45%;
+    background-color: #f9f9f9;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.correct-word {
+    color: green;
+    font-weight: bold;
+}
+
+.incorrect-word {
+    color: red;
+    font-weight: bold;
+}
+
+.results-column h2, .results-column h3 {
+    margin-bottom: 10px;
+    text-align: center;
+}
