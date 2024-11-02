@@ -1,51 +1,63 @@
 import React, { useState } from 'react';
 import './WordGrid.css';
 
-// Helper function to generate a random letter
-const getRandomLetter = () => {
-    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    return letters[Math.floor(Math.random() * letters.length)];
-};
-
-// Function to generate a grid with random letters
-const generateGrid = () => {
-    return Array.from({ length: 4 }, () => Array.from({ length: 4 }, () => getRandomLetter()));
-};
-
 const WordGrid = ({ grid = [], onWordFormed, playerId }) => {
+    // Convert the grid rows from strings to arrays of characters
     const formattedGrid = grid.map(row => row.split(''));
-    // const [grid] = useState(generateGrid()); // Generate the grid only once per render
+    
     const [selectedPositions, setSelectedPositions] = useState({});
+    const [isDragging, setIsDragging] = useState(false);
+    const [lastPosition, setLastPosition] = useState(null);
 
-    const handleLetterClick = (row, col) => {
-        const positionKey = `${row},${col}`;
-
-        setSelectedPositions((prev) => {
-            if (positionKey in prev) {
-                const newSelection = { ...prev };
-                delete newSelection[positionKey];
-                return newSelection;
-            } else {
-                return {
-                    ...prev,
-                    [positionKey]: formattedGrid[row][col],
-                };
-            }
-        });
+    // Check if a cell is adjacent to the last selected cell
+    const isAdjacent = (row, col) => {
+        if (!lastPosition) return true; // No previous position, so it's the first cell
+        const [lastRow, lastCol] = lastPosition;
+        return (
+            Math.abs(lastRow - row) <= 1 &&
+            Math.abs(lastCol - col) <= 1
+        );
     };
 
-    const handleSubmitWord = () => {
-        const submissionData = {
-            playerId, // Use playerId from props
-            word: Object.values(selectedPositions).join(''), // Concatenate letters for word
-            positions: selectedPositions, // Send positions to server
-        };
-        onWordFormed(submissionData);
+    const handleLetterMouseDown = (row, col) => {
+        setSelectedPositions({ [`${row},${col}`]: formattedGrid[row][col] });
+        setLastPosition([row, col]);
+        setIsDragging(true);
+    };
+
+    const handleLetterMouseOver = (row, col) => {
+        if (isDragging && isAdjacent(row, col)) {
+            setSelectedPositions((prev) => ({
+                ...prev,
+                [`${row},${col}`]: formattedGrid[row][col],
+            }));
+            setLastPosition([row, col]);
+        }
+    };
+
+    const handleMouseUp = () => {
+        if (Object.keys(selectedPositions).length > 0) {
+            // Formulate submission data
+            const submissionData = {
+                playerId,
+                word: Object.values(selectedPositions).join(''), // Concatenate letters for the word
+                positions: selectedPositions, // Send positions to the server
+            };
+            onWordFormed(submissionData);
+        }
+
+        // Reset selections and states
         setSelectedPositions({});
+        setIsDragging(false);
+        setLastPosition(null);
     };
 
     return (
-        <div className="word-grid">
+        <div
+            className="word-grid"
+            style={{ userSelect: 'none'}}
+            onMouseUp={handleMouseUp} // Listen for mouse up on the grid container
+        >
             {formattedGrid.map((row, rowIndex) => (
                 <div key={rowIndex} className="word-grid-row">
                     {row.map((letter, colIndex) => {
@@ -55,7 +67,8 @@ const WordGrid = ({ grid = [], onWordFormed, playerId }) => {
                             <div
                                 key={colIndex}
                                 className={`word-grid-cell ${isSelected ? 'selected' : ''}`}
-                                onClick={() => handleLetterClick(rowIndex, colIndex)}
+                                onMouseDown={() => handleLetterMouseDown(rowIndex, colIndex)}
+                                onMouseOver={() => handleLetterMouseOver(rowIndex, colIndex)}
                             >
                                 {letter}
                             </div>
@@ -63,9 +76,6 @@ const WordGrid = ({ grid = [], onWordFormed, playerId }) => {
                     })}
                 </div>
             ))}
-            <button onClick={handleSubmitWord} disabled={Object.keys(selectedPositions).length === 0}>
-                Submit Word
-            </button>
         </div>
     );
 };
