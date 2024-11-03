@@ -34,15 +34,6 @@ public class Player {
         this.score += points;
     }
 
-    public Set<String> getSubmittedWords() {
-        return submittedWords;
-    }
-
-    // maybe can make more efficient
-    public void setSubmittedWords(Set<String> words) {
-        this.submittedWords = words;
-    }
-
     // public List<String> getHighlightedLetters() {
     //     return highlightedLetters;
     // }
