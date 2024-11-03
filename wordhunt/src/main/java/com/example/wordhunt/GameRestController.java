@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -41,30 +40,29 @@ public class GameRestController {
     }
 
     @PostMapping("/lobbies/{lobbyId}/join")
-    public ResponseEntity<String> joinLobby(@PathVariable int lobbyId, @RequestBody Map<String, String> playerData) {
-        String playerName = playerData.get("playerName");
-        String playerId = UUID.randomUUID().toString();
-        Player newPlayer = new Player(playerId, playerName);
+    public ResponseEntity<Map<String, Object>> joinLobby(
+            @PathVariable int lobbyId,
+            @RequestBody Map<String, String> requestBody) {
 
-        Optional<Lobby> lobbyOpt = lobbyManager.joinLobby(lobbyId, newPlayer);
+        String playerId = requestBody.get("playerId");  // Use playerId provided by the client
+        String playerName = requestBody.get("playerName");
+        Player player = new Player(playerId, playerName);
+
+        Optional<Lobby> lobbyOpt = lobbyManager.joinLobby(lobbyId, player);
         if (lobbyOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"error\": \"Lobby is full or does not exist.\"}");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "Lobby is full or does not exist"));
         }
-
         Lobby lobby = lobbyOpt.get();
-        GameState gameState = lobby.getGameState();
+        lobby.getGameState().addPlayer(playerId, player);
 
+        // Include playerId in the response so the client can store it
         Map<String, Object> response = new HashMap<>();
         response.put("playerId", playerId);
         response.put("playerName", playerName);
-        response.put("grid", gameState.getGrid());
+        response.put("grid", lobbyOpt.get().getGameState().getGrid());
 
-        try {
-            return ResponseEntity.ok().body(objectMapper.writeValueAsString(response));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"error\": \"Unable to join lobby\"}");
-        }
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/lobbies/{lobbyId}/submitWord")
