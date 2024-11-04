@@ -76,6 +76,7 @@ public class GameRestController {
         response.put("playerId", playerId);
         response.put("playerName", playerName);
         response.put("grid", lobbyOpt.get().getGameState().getGrid());
+        response.put("lobbyId", lobbyId);
 
         return ResponseEntity.ok(response);
     }

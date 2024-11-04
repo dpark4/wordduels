@@ -2,11 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+const baseUrl = process.env.REACT_APP_API_BASE_URL;
+
 function LobbyPage() {
     const [lobbies, setLobbies] = useState([]);
     const navigate = useNavigate();
-    const baseUrl = process.env.REACT_APP_API_BASE_URL;
-    // console.log("API Base URL:", process.env.REACT_APP_API_BASE_URL);
     useEffect(() => {
         fetch(`${baseUrl}/api/lobbies`)
             .then(response => {
@@ -39,6 +39,7 @@ function LobbyPage() {
             });
 
             const data = await response.json();
+            console.log(data);
             if (response.ok) {
                 // Navigate to the Game Page, passing player data along with the lobby ID
                 navigate(`/game/${lobbyId}`, { state: { playerData: data } });

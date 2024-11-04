@@ -4,6 +4,8 @@ import { useLocation } from 'react-router-dom';
 import WordGrid from '../components/WordGrid';
 import ScoreBoard from '../components/ScoreBoard';
 
+const baseUrl = process.env.REACT_APP_API_BASE_URL;
+
 function GamePage() {
     const location = useLocation();
     const { playerData } = location.state || {}; // Contains playerId, playerName, grid
@@ -17,7 +19,7 @@ function GamePage() {
         console.log(`Word formed: ${submissionData.word}`, submissionData.positions);
 
         // Submit word to the server
-        fetch(`/api/lobbies/${playerData.lobbyId}/submitWord`, {
+        fetch(`${baseUrl}/api/lobbies/${playerData.lobbyId}/submitWord`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
