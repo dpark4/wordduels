@@ -8,6 +8,8 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/api")
 public class GameRestController {
@@ -37,6 +40,18 @@ public class GameRestController {
             e.printStackTrace();
         }
         this.dictionary = tempDictionary;
+    }
+
+    @GetMapping("/lobbies")
+    public ResponseEntity<Map<Integer, Map<String, Object>>> getLobbies() {
+        Map<Integer, Map<String, Object>> lobbyDetails = new HashMap<>();
+        for (Lobby lobby : lobbyManager.getLobbies()) {
+            Map<String, Object> lobbyInfo = new HashMap<>();
+            lobbyInfo.put("isFull", lobby.isFull());
+            lobbyInfo.put("playerCount", lobby.getPlayers().size());
+            lobbyDetails.put(lobby.getId(), lobbyInfo);
+        }
+        return ResponseEntity.ok(lobbyDetails);
     }
 
     @PostMapping("/lobbies/{lobbyId}/join")

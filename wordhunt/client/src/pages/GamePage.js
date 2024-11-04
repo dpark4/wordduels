@@ -1,50 +1,49 @@
-import React, { useState, useRef, useCallback } from 'react';
-// import './GamePage.css';
-import WordGrid from '.././components/WordGrid';
-import ScoreBoard from '.././components/ScoreBoard';
-import WebSocketClient from '.././components/WebSocketClient';
+// src/pages/GamePage.js
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import WordGrid from '../components/WordGrid';
+import ScoreBoard from '../components/ScoreBoard';
 
-function Game() {
-    const [playerId, setPlayerId] = useState(null);
-    const [playerName, setPlayerName] = useState("Player 1");
-    const [grid, setGrid] = useState([]);
+function GamePage() {
+    const location = useLocation();
+    const { playerData } = location.state || {}; // Contains playerId, playerName, grid
+
+    // Set up initial game state
+    const [grid, setGrid] = useState(playerData.grid || []);
     const [score, setScore] = useState(0);
-    const webSocketClientRef = useRef();
-
-    const handlePlayerInit = useCallback((id, name, grid) => {
-        setPlayerId(id);
-        setPlayerName(name);
-        setGrid(grid);
-        console.log(`Initialized player: ${name} with ID: ${id}`);
-    }, []);
+    const [playerName, setPlayerName] = useState(playerData.playerName || 'Player');
 
     const handleWordFormed = (submissionData) => {
         console.log(`Word formed: ${submissionData.word}`, submissionData.positions);
-        if (webSocketClientRef.current && playerId) {
-            // Pass word and positions to WebSocketClient's submitWord
-            webSocketClientRef.current.submitWord(submissionData.word, playerId, submissionData.positions);
-        } else {
-            console.warn("Player not initialized, can't submit word");
-        }
+
+        // Submit word to the server
+        fetch(`/api/lobbies/${playerData.lobbyId}/submitWord`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                playerId: playerData.playerId,
+                word: submissionData.word,
+                positions: submissionData.positions,
+            }),
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.points) {
+                    // Update score based on response from server
+                    setScore(score + data.points);
+                }
+            })
+            .catch(error => console.error("Error submitting word:", error));
     };
 
-    const handleScoreUpdate = useCallback((newScore) => setScore(newScore), []);
-
     return (
-        <div className="Game">
-            {/* <header className="App-header">
-                <h1>Word Hunt Game</h1>
-            </header> */}
-            <ScoreBoard score={score} />
-            <WordGrid grid={grid} onWordFormed={handleWordFormed} playerId={playerId} />
-            <WebSocketClient
-                ref={webSocketClientRef}
-                playerName={playerName}
-                onPlayerInit={handlePlayerInit}
-                onScoreUpdate={handleScoreUpdate}
-            />
+        <div>
+            <ScoreBoard score={score} playerName={playerName} />
+            <WordGrid grid={grid} onWordFormed={handleWordFormed} />
         </div>
     );
 }
 
-export default Game;
+export default GamePage;
