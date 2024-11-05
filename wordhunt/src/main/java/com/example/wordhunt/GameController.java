@@ -1,115 +1,121 @@
-package com.example.wordhunt;
+// package com.example.wordhunt;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+// import java.util.HashMap;
+// import java.util.Map;
+// import java.util.Optional;
+// import java.util.Set;
+// import java.util.UUID;
 
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.SendTo;
-import org.springframework.stereotype.Controller;
+// import org.springframework.messaging.handler.annotation.DestinationVariable;
+// import org.springframework.messaging.handler.annotation.MessageMapping;
+// import org.springframework.messaging.handler.annotation.Payload;
+// import org.springframework.messaging.handler.annotation.SendTo;
+// import org.springframework.stereotype.Controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+// import com.fasterxml.jackson.databind.ObjectMapper;
 
-@Controller
-public class GameController {
+// @Controller
+// public class GameController {
 
-    private GameState gameState = new GameState();
-    private ObjectMapper objectMapper = new ObjectMapper(); // For JSON conversion
-    private Set<String> dictionary;
+//     private final LobbyManager lobbyManager; // Now uses LobbyManager
+//     private final ObjectMapper objectMapper = new ObjectMapper(); // For JSON conversion
+//     private final Set<String> dictionary;
 
-    // Server-side grid generation
-    public GameController() {
-        try {
-            this.dictionary = DictionaryLoader.loadDictionary("src/main/resources/static/dictionary2.txt");
-            System.out.println("Dictionary loaded with " + dictionary.size() + " words.");
-            WordFinder.setDictionary(dictionary);
-        } catch (Exception e) {
-            System.out.println("Error loading dictionary: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
+//     // Constructor: Loads dictionary and initializes lobby manager
+//     public GameController() {
+//         this.lobbyManager = new LobbyManager();
+//         Set<String> tempDictionary = Set.of();
+//         try {
+//             tempDictionary = DictionaryLoader.loadDictionary("src/main/resources/static/dictionary2.txt");
+//             System.out.println("Dictionary loaded with " + tempDictionary.size() + " words.");
+//             WordFinder.setDictionary(tempDictionary);
+//         } catch (Exception e) {
+//             System.out.println("Error loading dictionary: " + e.getMessage());
+//             e.printStackTrace();
+//         }
+//         this.dictionary = tempDictionary;
+//     }
 
-    @MessageMapping("/initializePlayer")
-    @SendTo("/topic/playerInit")
-    public String initializePlayer(String playerName) {
-        String playerId = UUID.randomUUID().toString();
-        Player newPlayer = new Player(playerId, playerName);
+//     // Initialize player and lobby's game state if first player to join
+//     @MessageMapping("/initializePlayer/{lobbyId}")
+//     @SendTo("/topic/playerInit/{lobbyId}")
+//     public String initializePlayer(@DestinationVariable int lobbyId, @Payload Map<String, String> payload) {
+//         String playerName = payload.get("playerName");
+//         String playerId = UUID.randomUUID().toString();
+//         Player newPlayer = new Player(playerId, playerName);
 
-        gameState.addPlayer(playerId, newPlayer);
-        System.out.println("Added player with ID: " + playerId);
+//         // Attempt to join lobby and set up the game state
+//         Optional<Lobby> lobbyOpt = lobbyManager.joinLobby(lobbyId, newPlayer);
+//         if (lobbyOpt.isEmpty()) {
+//             return "{\"error\": \"Lobby is full or does not exist.\"}";
+//         }
 
-        if (!gameState.isGridGenerated()) {
-            int gridSize = 5; // Example grid size, can be dynamic
-            char[][] grid = BestGridFinder.findBestGrid(gridSize, 10);
-            gameState.setGrid(grid); // Set the generated grid in GameState
-            Set<String> validWords = WordFinder.findAllWords(grid);
-            gameState.setValidWords(validWords); // Store valid words
-            System.out.println("Generated new grid for the game.");
-        } else {
-            System.out.println("Reusing existing grid.");
-        }
+//         // Generate response with player info and game grid
+//         Lobby lobby = lobbyOpt.get();
+//         GameState gameState = lobby.getGameState();
+//         Map<String, Object> response = new HashMap<>();
+//         response.put("playerId", playerId);
+//         response.put("playerName", playerName);
+//         response.put("grid", gameState.getGrid());
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("playerId", playerId);
-        response.put("playerName", playerName);
-        response.put("grid", gameState.getGrid());
-        // don't need to send valid words to the client, handled in server
-        // response.put("validWords", gameState.getValidWords());
-        try {
-            return objectMapper.writeValueAsString(response);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "{\"error\": \"Unable to initialize player\"}";
-        }
-    }
+//         try {
+//             return objectMapper.writeValueAsString(response);
+//         } catch (Exception e) {
+//             e.printStackTrace();
+//             return "{\"error\": \"Unable to initialize player\"}";
+//         }
+//     }
 
-    // Server-side in GameController
-    @MessageMapping("/submitWord")
-    @SendTo("/topic/leaderboard")
-    public String processWordSubmission(Map<String, Object> submissionData) {
-        String playerId = (String) submissionData.get("playerId");
-        String submittedWord = (String) submissionData.get("word");
-        Map<String, String> positions = (Map<String, String>) submissionData.get("positions");
-        // Validate the player
-        Player player = gameState.getPlayers().get(playerId);
-        if (player == null) {
-            return "{\"error\": \"Player not found\"}";
-        }
-        Set<String> submittedWords = player.getSubmittedWords();
-        // Combine letters from positions to verify the word
-        StringBuilder serverWord = new StringBuilder();
-        for (String positionKey : positions.keySet()) {
-            serverWord.append(positions.get(positionKey));
-        }
+//     // Process word submission by player
+//     @MessageMapping("/submitWord/{lobbyId}")
+//     @SendTo("/topic/leaderboard/{lobbyId}")
+//     public String processWordSubmission(@DestinationVariable int lobbyId, @Payload Map<String, Object> submissionData) {
+//         String playerId = (String) submissionData.get("playerId");
+//         String submittedWord = (String) submissionData.get("word");
+//         Map<String, String> positions = (Map<String, String>) submissionData.get("positions");
 
-        // Validate word consistency
-        if (!serverWord.toString().equals(submittedWord)) {
-            return "{\"error\": \"Submitted word does not match letter positions\"}";
-        }
+//         Lobby lobby = lobbyManager.getLobby(lobbyId);
+//         if (lobby == null || lobby.getGameState() == null) {
+//             return "{\"error\": \"Lobby does not exist or has no active game.\"}";
+//         }
 
-        if (!gameState.getValidWords().contains(submittedWord)) {
-            return "{\"error\": \"Invalid word\"}";
-        }
-        submittedWords.add(submittedWord);
-        player.setSubmittedWords(submittedWords);
+//         GameState gameState = lobby.getGameState();
+//         Player player = gameState.getPlayers().get(playerId);
+//         if (player == null) {
+//             return "{\"error\": \"Player not found\"}";
+//         }
 
-        int points = submittedWord.length();
-        player.addScore(points);
+//         // Verify and validate word submission
+//         if (!isValidSubmission(gameState, submittedWord, positions)) {
+//             return "{\"error\": \"Invalid word or mismatch with positions\"}";
+//         }
 
-        // Prepare response
-        Map<String, Object> response = new HashMap<>();
-        response.put("playerName", player.getName());
-        response.put("points", points);
-        response.put("totalScore", player.getScore());
-        // response.put("highlightedLetters", positions);
+//         player.getSubmittedWords().add(submittedWord);
+//         int points = submittedWord.length();
+//         player.addScore(points);
 
-        try {
-            return objectMapper.writeValueAsString(response);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "{\"error\": \"Unable to create response\"}";
-        }
-    }
+//         // Create leaderboard response
+//         Map<String, Object> response = new HashMap<>();
+//         response.put("playerName", player.getName());
+//         response.put("points", points);
+//         response.put("totalScore", player.getScore());
 
-}
+//         try {
+//             return objectMapper.writeValueAsString(response);
+//         } catch (Exception e) {
+//             e.printStackTrace();
+//             return "{\"error\": \"Unable to create response\"}";
+//         }
+//     }
+
+//     // Helper to validate submission word and letter positions
+//     private boolean isValidSubmission(GameState gameState, String submittedWord, Map<String, String> positions) {
+//         // Combine positions letters
+//         StringBuilder serverWord = new StringBuilder();
+//         for (String positionKey : positions.keySet()) {
+//             serverWord.append(positions.get(positionKey));
+//         }
+//         // Check if word matches and exists in valid words set
+//         return serverWord.toString().equals(submittedWord) && gameState.getValidWords().contains(submittedWord);
+//     }
+// }
