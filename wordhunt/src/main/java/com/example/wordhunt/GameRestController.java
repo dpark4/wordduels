@@ -8,6 +8,8 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @CrossOrigin(origins = "http://localhost:3000")
+@Controller
 @RestController
 @RequestMapping("/api")
 public class GameRestController {
@@ -26,10 +29,13 @@ public class GameRestController {
     private final LobbyManager lobbyManager;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final Set<String> dictionary;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Autowired
-    public GameRestController(LobbyManager lobbyManager) {
+    public GameRestController(LobbyManager lobbyManager, SimpMessagingTemplate messagingTemplate) {
         this.lobbyManager = lobbyManager;
+        this.messagingTemplate = messagingTemplate;
+
         Set<String> tempDictionary = Set.of();
         try {
             tempDictionary = DictionaryLoader.loadDictionary("src/main/resources/static/dictionary2.txt");
@@ -69,9 +75,12 @@ public class GameRestController {
                     .body(Map.of("error", "Lobby is full or does not exist"));
         }
         Lobby lobby = lobbyOpt.get();
-        lobby.getGameState().addPlayer(playerId, player);
 
-        // Include playerId in the response so the client can store it
+        if (lobby != null && lobby.getPlayers().size() == 2) {
+            messagingTemplate.convertAndSend("/topic/lobbies/" + lobbyId, "game-ready");
+        }
+
+        lobby.getGameState().addPlayer(playerId, player);
         Map<String, Object> response = new HashMap<>();
         response.put("playerId", playerId);
         response.put("playerName", playerName);
