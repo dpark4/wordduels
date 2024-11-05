@@ -1,19 +1,37 @@
-// src/pages/LobbyPage.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { v4 as uuidv4 } from 'uuid'; // Import uuid for generating unique IDs
 
 const baseUrl = process.env.REACT_APP_API_BASE_URL;
 
 function LobbyPage() {
     const [lobbies, setLobbies] = useState([]);
     const navigate = useNavigate();
+
+    // Retrieve or generate a unique player ID
+    const getPlayerId = () => {
+        let playerId = localStorage.getItem('playerId');
+        if (!playerId) {
+            playerId = uuidv4(); // Generate a new UUID
+            localStorage.setItem('playerId', playerId);
+        }
+        return playerId;
+    };
+
+    // Retrieve or set player data in localStorage
+    const playerId = getPlayerId();
+    const playerName = localStorage.getItem('playerName') || 'Player'; // Default player name
+    if (!localStorage.getItem('playerName')) {
+        localStorage.setItem('playerName', playerName);
+    }
+
     useEffect(() => {
         fetch(`${baseUrl}/api/lobbies`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                return response.json(); // Expect JSON only if response is successful
+                return response.json();
             })
             .then(data => {
                 const lobbyArray = Object.keys(data).map(id => ({
@@ -24,9 +42,7 @@ function LobbyPage() {
                 setLobbies(lobbyArray);
             })
             .catch(error => console.error("Error fetching lobbies:", error));
-    }, [baseUrl]);
-    
-       
+    }, []);
 
     const handleJoinLobby = async (lobbyId) => {
         try {
@@ -35,7 +51,7 @@ function LobbyPage() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ playerId: 'player123', playerName: 'Player 1' })
+                body: JSON.stringify({ playerId, playerName })
             });
 
             const data = await response.json();

@@ -1,4 +1,3 @@
-// src/pages/GamePage.js
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import WordGrid from '../components/WordGrid';
@@ -20,11 +19,15 @@ function GamePage() {
     const [gamePhase, setGamePhase] = useState("waiting"); // 'waiting', 'countdown', 'active', 'finished'
     
     useEffect(() => {
-        const stompClient = Stomp.over(() => new SockJS(`${baseUrl}/wordhunt`)); // Updated initialization
+        const stompClient = Stomp.over(() => new SockJS(`${baseUrl}/wordhunt`));
 
         stompClient.connect({}, () => {
+            console.log("Connected to WebSocket server");
+
+            // Subscribe to the specific lobby topic
             stompClient.subscribe(`/topic/lobbies/${playerData.lobbyId}`, (message) => {
-                console.log(message.body())
+                console.log("Received message:", message.body); // Use message.body directly
+
                 if (message.body === "game-ready") {
                     setGamePhase("countdown"); // Start 3-second countdown
                     setTimer(3);
@@ -32,6 +35,7 @@ function GamePage() {
             });
         });
 
+        // Clean up WebSocket connection on component unmount
         return () => stompClient.disconnect();
     }, [playerData.lobbyId]);
 
