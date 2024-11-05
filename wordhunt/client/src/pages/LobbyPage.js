@@ -39,9 +39,7 @@ function LobbyPage() {
             });
 
             const data = await response.json();
-            console.log(data);
             if (response.ok) {
-                // Navigate to the Game Page, passing player data along with the lobby ID
                 navigate(`/game/${lobbyId}`, { state: { playerData: data } });
             } else {
                 console.error("Failed to join lobby:", data.error);
