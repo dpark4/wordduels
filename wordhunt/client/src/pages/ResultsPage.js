@@ -1,17 +1,15 @@
-// src/pages/ResultsPage.js
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import './ResultsPage.css';
 
 function ResultsPage() {
     const { lobbyId } = useParams();
-    const [playerOneResults, setPlayerOneResults] = useState({ correctWords: [], incorrectWords: [] });
-    const [playerTwoResults, setPlayerTwoResults] = useState({ correctWords: [], incorrectWords: [] });
+    const [playerOneResults, setPlayerOneResults] = useState({ submittedWords: [], score: 0 });
+    const [playerTwoResults, setPlayerTwoResults] = useState({ submittedWords: [], score: 0 });
     const [players, setPlayers] = useState({ playerOne: '', playerTwo: '' });
 
     useEffect(() => {
-        // Fetch results from the server based on lobbyId
-        fetch(`/api/results/${lobbyId}`)
+        fetch(`/api/lobbies/${lobbyId}/results`)
             .then(response => response.json())
             .then(data => {
                 setPlayerOneResults(data.playerOneResults);
@@ -25,26 +23,24 @@ function ResultsPage() {
         <div className="results-container">
             <div className="results-column">
                 <h2>{players.playerOne}</h2>
-                <h3>Correct Words</h3>
-                {playerOneResults.correctWords.map(word => (
-                    <p key={word} className="correct-word">{word}</p>
-                ))}
-                <h3>Incorrect Words</h3>
-                {playerOneResults.incorrectWords.map(word => (
-                    <p key={word} className="incorrect-word">{word}</p>
-                ))}
+                <p>Score: {playerOneResults.score}</p>
+                <h3>Submitted Words:</h3>
+                <ul>
+                    {playerOneResults.submittedWords.map((word, index) => (
+                        <li key={index}>{word}</li>
+                    ))}
+                </ul>
             </div>
 
             <div className="results-column">
                 <h2>{players.playerTwo}</h2>
-                <h3>Correct Words</h3>
-                {playerTwoResults.correctWords.map(word => (
-                    <p key={word} className="correct-word">{word}</p>
-                ))}
-                <h3>Incorrect Words</h3>
-                {playerTwoResults.incorrectWords.map(word => (
-                    <p key={word} className="incorrect-word">{word}</p>
-                ))}
+                <p>Score: {playerTwoResults.score}</p>
+                <h3>Submitted Words:</h3>
+                <ul>
+                    {playerTwoResults.submittedWords.map((word, index) => (
+                        <li key={index}>{word}</li>
+                    ))}
+                </ul>
             </div>
         </div>
     );

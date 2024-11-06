@@ -63,6 +63,47 @@ public class GameRestController {
         return ResponseEntity.ok(lobbyDetails);
     }
 
+    @GetMapping("/lobbies/{lobbyId}/results")
+    public ResponseEntity<Map<String, Object>> getGameResults(@PathVariable int lobbyId) {
+        Lobby lobby = lobbyManager.getLobby(lobbyId);
+
+        if (lobby == null || lobby.getGameState() == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Lobby does not exist or game has not started"));
+        }
+
+        GameState gameState = lobby.getGameState();
+        Map<String, Object> results = new HashMap<>();
+
+        // Extract player results based on player IDs
+        Player[] players = gameState.getPlayers().values().toArray(new Player[0]);
+        if (players.length < 2) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Insufficient players in the game."));
+        }
+
+        // Format the results for each player
+        Map<String, Object> playerOneResults = new HashMap<>();
+        Map<String, Object> playerTwoResults = new HashMap<>();
+
+        // Assuming player one is the first in the list and player two is the second
+        Player playerOne = players[0];
+        Player playerTwo = players[1];
+
+        playerOneResults.put("score", playerOne.getScore());
+        playerOneResults.put("submittedWords", gameState.getSubmittedWordsByPlayer(playerOne.getId()));
+
+        playerTwoResults.put("score", playerTwo.getScore());
+        playerTwoResults.put("submittedWords", gameState.getSubmittedWordsByPlayer(playerTwo.getId()));
+
+        // Prepare response data
+        results.put("playerOneName", playerOne.getName());
+        results.put("playerOneResults", playerOneResults);
+
+        results.put("playerTwoName", playerTwo.getName());
+        results.put("playerTwoResults", playerTwoResults);
+
+        return ResponseEntity.ok(results);
+    }
+
     @PostMapping("/lobbies/{lobbyId}/join")
     public ResponseEntity<Map<String, Object>> joinLobby(
             @PathVariable int lobbyId,

@@ -47,7 +47,7 @@ function GamePage() {
                     if (prev === 1) {
                         clearInterval(countdownInterval);
                         setGamePhase("active"); // Start the 60-second game phase
-                        setTimer(60);
+                        setTimer(15);
                     }
                     return prev - 1;
                 });

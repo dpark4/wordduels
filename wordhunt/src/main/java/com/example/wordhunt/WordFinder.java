@@ -53,7 +53,7 @@ public class WordFinder {
         // Check if currentWord is a complete word
         if (dictionaryTrie.isWord(currentWord.toString())) {
             foundWords.add(currentWord.toString());
-            System.out.println("Found word: " + currentWord);
+            // System.out.println("Found word: " + currentWord);
         }
 
         // Continue DFS with current path
