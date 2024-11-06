@@ -42,12 +42,18 @@ public class GameState {
         playerSubmissions.remove(playerId);
     }
 
-    public boolean isWordAlreadySubmitted(String word) {
-        return playerSubmissions.values().stream().anyMatch(submissions -> submissions.contains(word));
+    // Method to check if a specific player has already submitted a specific word
+    public boolean isWordAlreadySubmitted(String playerId, String word) {
+        return playerSubmissions.getOrDefault(playerId, new HashSet<>()).contains(word);
+    }
+
+    // Method to retrieve all words submitted by a specific player
+    public Set<String> getSubmittedWordsByPlayer(String playerId) {
+        return playerSubmissions.getOrDefault(playerId, new HashSet<>());
     }
 
     public void addSubmittedWord(String playerId, String word) {
-        playerSubmissions.getOrDefault(playerId, new HashSet<>()).add(word);
+        playerSubmissions.computeIfAbsent(playerId, k -> new HashSet<>()).add(word);
     }
 
     public boolean isGridGenerated() {

@@ -121,9 +121,14 @@ public class GameRestController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"error\": \"Player not found\"}");
         }
 
-        // Validate the word and positions, and check for previous submissions
-        if (!isValidSubmission(gameState, submittedWord, positions)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"error\": \"Invalid word, mismatch with positions, or word already submitted\"}");
+        // Check if the word has already been submitted by this player
+        if (gameState.isWordAlreadySubmitted(playerId, submittedWord)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"error\": \"Word already submitted by this player\"}");
+        }
+
+        // Validate the word and positions
+        if (!isValidSubmission(gameState, playerId, submittedWord, positions)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"error\": \"Invalid word or mismatch with positions\"}");
         }
 
         // Add word submission to GameState's tracking and update player score
@@ -145,10 +150,12 @@ public class GameRestController {
     }
 
     // Helper to validate submission word, letter positions, and prior submissions
-    private boolean isValidSubmission(GameState gameState, String submittedWord, Map<String, String> positions) {
-        if (gameState.isWordAlreadySubmitted(submittedWord)) {
+    private boolean isValidSubmission(GameState gameState, String playerId, String submittedWord, Map<String, String> positions) {
+        // Check if the word was already submitted by this player
+        if (gameState.isWordAlreadySubmitted(playerId, submittedWord)) {
             return false;
         }
+
         StringBuilder serverWord = new StringBuilder();
         for (String positionKey : positions.keySet()) {
             serverWord.append(positions.get(positionKey));
