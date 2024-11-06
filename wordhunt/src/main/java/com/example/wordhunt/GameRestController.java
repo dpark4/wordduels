@@ -4,6 +4,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -65,7 +68,7 @@ public class GameRestController {
             @PathVariable int lobbyId,
             @RequestBody Map<String, String> requestBody) {
 
-        String playerId = requestBody.get("playerId");  // Use playerId provided by the client
+        String playerId = requestBody.get("playerId");
         String playerName = requestBody.get("playerName");
         Player player = new Player(playerId, playerName);
 
@@ -74,17 +77,28 @@ public class GameRestController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("error", "Lobby is full or does not exist"));
         }
-        Lobby lobby = lobbyOpt.get();
 
-        if (lobby != null && lobby.getPlayers().size() == 2) {
-            messagingTemplate.convertAndSend("/topic/lobbies/" + lobbyId, "game-ready");
+        Lobby lobby = lobbyOpt.get();
+        lobby.getGameState().addPlayer(playerId, player);
+
+        // Check if both players have joined
+        if (lobby.getPlayers().size() == 2) {
+            System.out.println("Both players have joined. Preparing to send 'game-ready' message.");
+
+            // Delay broadcast to ensure all clients have subscribed
+            ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+            scheduler.schedule(() -> {
+                messagingTemplate.convertAndSend("/topic/lobbies/" + lobbyId, "game-ready");
+                System.out.println("Broadcasted 'game-ready' to lobby " + lobbyId);
+            }, 500, TimeUnit.MILLISECONDS); // Adjust delay if necessary
+
+            scheduler.shutdown();
         }
 
-        lobby.getGameState().addPlayer(playerId, player);
         Map<String, Object> response = new HashMap<>();
         response.put("playerId", playerId);
         response.put("playerName", playerName);
-        response.put("grid", lobbyOpt.get().getGameState().getGrid());
+        response.put("grid", lobby.getGameState().getGrid());
         response.put("lobbyId", lobbyId);
 
         return ResponseEntity.ok(response);
