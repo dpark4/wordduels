@@ -17,8 +17,24 @@ function GamePage() {
     const [playerName, setPlayerName] = useState(playerData.playerName || 'Player');
     const [timer, setTimer] = useState(null); // Countdown and game timer
     const [gamePhase, setGamePhase] = useState("waiting"); // 'waiting', 'countdown', 'active', 'finished'
-    
+    const [hasJoined, setHasJoined] = useState(false); // Track if player has joined fully
+
+    const playerId = playerData.playerId;
+
+    // Function to notify server that player is leaving the lobby
+    const leaveLobby = () => {
+        if (hasJoined) {
+            console.log("Attempting to leave lobby...");
+            fetch(`${baseUrl}/api/lobbies/${playerData.lobbyId}/leave`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ playerId })
+            }).catch(error => console.error("Error notifying server of player leaving:", error));
+        }
+    };
+
     useEffect(() => {
+        // Initialize WebSocket connection
         const stompClient = Stomp.over(() => new SockJS(`${baseUrl}/wordhunt`));
 
         stompClient.connect({}, () => {
@@ -26,18 +42,32 @@ function GamePage() {
 
             // Subscribe to the specific lobby topic
             stompClient.subscribe(`/topic/lobbies/${playerData.lobbyId}`, (message) => {
-                console.log("Received message:", message.body); // Use message.body directly
+                console.log("Received message:", message.body);
 
                 if (message.body === "game-ready") {
                     setGamePhase("countdown"); // Start 3-second countdown
                     setTimer(3);
                 }
             });
+
+            // Indicate player has fully joined the lobby and WebSocket connection is established
+            setHasJoined(true);
         });
 
-        // Clean up WebSocket connection on component unmount
-        return () => stompClient.disconnect();
-    }, [playerData.lobbyId]);
+        // Notify server when user leaves the page
+        const handleBeforeUnload = () => {
+            leaveLobby();
+        };
+
+        window.addEventListener("beforeunload", handleBeforeUnload);
+
+        // Clean up on component unmount
+        return () => {
+            window.removeEventListener("beforeunload", handleBeforeUnload);
+            leaveLobby(); // Ensure player leaves lobby if navigating away
+            stompClient.disconnect(); // Disconnect WebSocket
+        };
+    }, [hasJoined]); // Trigger once after joining is confirmed
 
     useEffect(() => {
         // Countdown for the 3-second timer
@@ -79,18 +109,18 @@ function GamePage() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                playerId: playerData.playerId,
+                playerId,
                 word: submissionData.word,
                 positions: submissionData.positions,
             }),
         })
-            .then(response => response.json())
-            .then(data => {
-                if (data.points) {
-                    setScore(score + data.points); // Update score based on server response
-                }
-            })
-            .catch(error => console.error("Error submitting word:", error));
+        .then(response => response.json())
+        .then(data => {
+            if (data.points) {
+                setScore(score + data.points); // Update score based on server response
+            }
+        })
+        .catch(error => console.error("Error submitting word:", error));
     };
 
     const showResults = () => {

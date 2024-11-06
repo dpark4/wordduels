@@ -8,23 +8,22 @@ public class BestGridFinder {
         char[][] bestGrid = null;
         int maxScore = 0;
 
-        System.out.println("Entering findBestGrid with gridSize: " + size + " and gridCount: " + gridCount);
-
+        // System.out.println("Entering findBestGrid with gridSize: " + size + " and gridCount: " + gridCount);
         for (int i = 0; i < gridCount; i++) {
-            System.out.println("Generating grid " + (i + 1) + " of " + gridCount);
+            // System.out.println("Generating grid " + (i + 1) + " of " + gridCount);
             char[][] grid = GridGenerator.generateRandomGrid(size);
 
-            System.out.println("Finding all words in the grid...");
+            // System.out.println("Finding all words in the grid...");
             Set<String> words = WordFinder.findAllWords(grid);
-            System.out.println("Found words: " + words);
+            // System.out.println("Found words: " + words);
 
             int score = calculateScore(words);
-            System.out.println("Score for this grid: " + score);
+            // System.out.println("Score for this grid: " + score);
 
             if (score > maxScore) {
                 maxScore = score;
                 bestGrid = grid;
-                System.out.println("New best grid found with score: " + maxScore);
+                // System.out.println("New best grid found with score: " + maxScore);
             }
         }
 

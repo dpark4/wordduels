@@ -35,39 +35,25 @@ public class LobbyManager {
                 Set<String> validWords = WordFinder.findAllWords(grid);
                 gameState.setValidWords(validWords);
                 lobby.setGameState(gameState);
+                System.out.println("GameState initialized for lobby: " + lobbyId);
             }
+            System.out.println("Player " + player.getId() + " joined lobby " + lobbyId);
             return Optional.of(lobby);
         }
+        System.out.println("Failed to join lobby: " + lobbyId);
         return Optional.empty();
     }
 
-    // public Optional<Lobby> joinLobby(int lobbyId, Player player) {
-    //     Lobby lobby = lobbies.get(lobbyId);
-    //     if (lobby != null && !lobby.isFull()) {
-    //         // maybe just change this to run after the if statement to avoid async issues
-    //         lobby.addPlayer(player);
-    //         // Initialize GameState if this is the first player
-    //         if (lobby.getPlayers().size() == 1) {
-    //             int gridSize = 5; // Example grid size
-    //             char[][] grid = BestGridFinder.findBestGrid(gridSize, 10);
-    //             GameState gameState = new GameState();
-    //             gameState.setGrid(grid);
-    //             Set<String> validWords = WordFinder.findAllWords(grid);
-    //             gameState.setValidWords(validWords);
-    //             lobby.setGameState(gameState);
-    //             // need to add locking mechanism so that player doesn't reach for grid before the grid get's generated
-    //         }
-    //         return Optional.of(lobby);
-    //     }
-    //     return Optional.empty();
-    // }
     public void leaveLobby(int lobbyId, String playerId) {
         Lobby lobby = lobbies.get(lobbyId);
         if (lobby != null) {
             lobby.removePlayer(playerId);
+            System.out.println("Player " + playerId + " left lobby " + lobbyId);
+
             // Remove GameState if the lobby is empty
             if (lobby.getPlayers().isEmpty()) {
                 lobby.setGameState(null);
+                System.out.println("GameState cleared for lobby " + lobbyId);
             }
         }
     }

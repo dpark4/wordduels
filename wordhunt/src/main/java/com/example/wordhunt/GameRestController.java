@@ -145,6 +145,28 @@ public class GameRestController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/lobbies/{lobbyId}/leave")
+    public ResponseEntity<String> leaveLobby(@PathVariable int lobbyId, @RequestBody Map<String, String> requestBody) {
+        String playerId = requestBody.get("playerId");
+        System.out.println("Leave request: Lobby ID = " + lobbyId + ", Player ID = " + playerId);
+        Lobby lobby = lobbyManager.getLobby(lobbyId);
+        if (lobby == null || lobby.getGameState() == null) {
+            System.out.println("Error: Lobby does not exist or has no active game.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"error\": \"Lobby does not exist or has no active game.\"}");
+        }
+
+        // lobby.removePlayer(playerId);
+        lobbyManager.leaveLobby(lobbyId, playerId);
+
+        System.out.println("Player " + playerId + " has left the lobby " + lobbyId);
+        // Optional: If the lobby is empty, you could clear its state or perform other cleanup actions
+        if (lobby.getPlayers().isEmpty()) {
+            lobby.setGameState(null); // Clear the game state if no players remain
+        }
+
+        return ResponseEntity.ok("{\"message\": \"Player removed from lobby\"}");
+    }
+
     @PostMapping("/lobbies/{lobbyId}/submitWord")
     public ResponseEntity<String> submitWord(@PathVariable int lobbyId, @RequestBody Map<String, Object> submissionData) {
         String playerId = (String) submissionData.get("playerId");
