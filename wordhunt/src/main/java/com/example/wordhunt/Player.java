@@ -34,6 +34,9 @@ public class Player {
         this.score += points;
     }
 
+    public void setScore(int score) {
+        this.score = score;
+    }
     // public List<String> getHighlightedLetters() {
     //     return highlightedLetters;
     // }
