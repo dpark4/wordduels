@@ -4,6 +4,7 @@ import WordGrid from '../components/WordGrid';
 import ScoreBoard from '../components/ScoreBoard';
 import { Stomp } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
+import './GamePage.css';
 
 const baseUrl = process.env.REACT_APP_API_BASE_URL;
 

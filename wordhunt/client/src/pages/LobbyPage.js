@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { v4 as uuidv4 } from 'uuid'; // Import uuid for generating unique IDs
+import { v4 as uuidv4 } from 'uuid'; // Import UUID for generating unique IDs
+import './LobbyPage.css';
 
 const baseUrl = process.env.REACT_APP_API_BASE_URL;
 
@@ -18,26 +19,17 @@ function LobbyPage() {
         return playerId;
     };
 
-    // Retrieve or set player data in localStorage
     const playerId = getPlayerId();
-    const playerName = localStorage.getItem('playerName') || 'Player'; // Default player name
-    if (!localStorage.getItem('playerName')) {
-        localStorage.setItem('playerName', playerName);
-    }
+    const playerName = "Player"; // Placeholder name; update as needed
 
     useEffect(() => {
         fetch(`${baseUrl}/api/lobbies`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
+            .then(response => response.json())
             .then(data => {
                 const lobbyArray = Object.keys(data).map(id => ({
                     id: parseInt(id),
                     isFull: data[id].isFull,
-                    playerCount: data[id].playerCount
+                    playerCount: data[id].playerCount,
                 }));
                 setLobbies(lobbyArray);
             })
@@ -48,9 +40,7 @@ function LobbyPage() {
         try {
             const response = await fetch(`${baseUrl}/api/lobbies/${lobbyId}/join`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ playerId, playerName })
             });
 
@@ -66,16 +56,21 @@ function LobbyPage() {
     };
 
     return (
-        <div>
-            <h2>Select a Lobby</h2>
-            {lobbies.map((lobby) => (
-                <button 
-                    key={lobby.id} 
-                    onClick={() => handleJoinLobby(lobby.id)} 
-                    disabled={lobby.isFull}>
-                    Lobby {lobby.id} {lobby.isFull ? "(Full)" : ""}
-                </button>
-            ))}
+        <div className="lobby-container">
+            <h2 className="lobby-title">Select a Lobby</h2>
+            <div className="lobby-grid">
+                {lobbies.map((lobby, index) => (
+                    <div key={index} className="lobby-grid-row">
+                        <button 
+                            onClick={() => handleJoinLobby(lobby.id)} 
+                            className="lobby-button"
+                            disabled={lobby.isFull}
+                        >
+                            {lobby.isFull ? "Full" : `Lobby ${lobby.id}`}
+                        </button>
+                    </div>
+                ))}
+            </div>
         </div>
     );
 }

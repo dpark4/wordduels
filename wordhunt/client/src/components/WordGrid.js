@@ -1,17 +1,15 @@
 import React, { useState } from 'react';
 import './WordGrid.css';
 
-const WordGrid = ({ grid = [], onWordFormed, playerId }) => {
-    // Convert the grid rows from strings to arrays of characters
+const WordGrid = ({ grid = [], onWordFormed, playerId, disabled }) => {
     const formattedGrid = grid.map(row => row.split(''));
-    
+
     const [selectedPositions, setSelectedPositions] = useState({});
     const [isDragging, setIsDragging] = useState(false);
     const [lastPosition, setLastPosition] = useState(null);
 
-    // Check if a cell is adjacent to the last selected cell
     const isAdjacent = (row, col) => {
-        if (!lastPosition) return true; // No previous position, so it's the first cell
+        if (!lastPosition) return true;
         const [lastRow, lastCol] = lastPosition;
         return (
             Math.abs(lastRow - row) <= 1 &&
@@ -20,33 +18,31 @@ const WordGrid = ({ grid = [], onWordFormed, playerId }) => {
     };
 
     const handleLetterMouseDown = (row, col) => {
+        if (disabled) return; // Prevent selection if disabled
         setSelectedPositions({ [`${row},${col}`]: formattedGrid[row][col] });
         setLastPosition([row, col]);
         setIsDragging(true);
     };
 
     const handleLetterMouseOver = (row, col) => {
-        if (isDragging && isAdjacent(row, col)) {
-            setSelectedPositions((prev) => ({
-                ...prev,
-                [`${row},${col}`]: formattedGrid[row][col],
-            }));
-            setLastPosition([row, col]);
-        }
+        if (disabled || !isDragging || !isAdjacent(row, col)) return;
+        setSelectedPositions((prev) => ({
+            ...prev,
+            [`${row},${col}`]: formattedGrid[row][col],
+        }));
+        setLastPosition([row, col]);
     };
 
     const handleMouseUp = () => {
-        if (Object.keys(selectedPositions).length > 0) {
-            // Formulate submission data
+        if (Object.keys(selectedPositions).length > 0 && !disabled) {
             const submissionData = {
                 playerId,
-                word: Object.values(selectedPositions).join(''), // Concatenate letters for the word
-                positions: selectedPositions, // Send positions to the server
+                word: Object.values(selectedPositions).join(''),
+                positions: selectedPositions,
             };
             onWordFormed(submissionData);
         }
 
-        // Reset selections and states
         setSelectedPositions({});
         setIsDragging(false);
         setLastPosition(null);
@@ -54,9 +50,9 @@ const WordGrid = ({ grid = [], onWordFormed, playerId }) => {
 
     return (
         <div
-            className="word-grid"
-            style={{ userSelect: 'none'}}
-            onMouseUp={handleMouseUp} // Listen for mouse up on the grid container
+            className={`word-grid ${disabled ? 'disabled' : ''}`}
+            style={{ userSelect: 'none' }}
+            onMouseUp={handleMouseUp}
         >
             {formattedGrid.map((row, rowIndex) => (
                 <div key={rowIndex} className="word-grid-row">

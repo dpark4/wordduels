@@ -1,0 +1,17 @@
+/* GamePage styling */
+.game-page-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding-top: 20vh; /* Adjust for higher position */
+    margin-bottom: 5vh;
+}
+
+.game-page-title, .game-page-score {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: white;
+    text-align: center;
+    margin: 10px 0;
+}
