@@ -137,10 +137,14 @@ function GamePage() {
     };
 
     return (
-        <div>
-            <ScoreBoard score={score} playerName={playerName} />
-            <h2>{gamePhase === "waiting" ? "Waiting for players..." : `Time left: ${timer}`}</h2>
-            <WordGrid grid={grid} onWordFormed={handleWordFormed} disabled={gamePhase !== "active"} />
+        <div className="game-page-container">
+            <h2 className="game-page-title">{playerName}'s Score: {score}</h2>
+            <h3 className="game-page-timer">
+                {gamePhase === "waiting" ? "Waiting for players..." : `Time left: ${timer}`}
+            </h3>
+            <div className="word-grid-container">
+                <WordGrid grid={grid} onWordFormed={handleWordFormed} disabled={gamePhase !== "active"} />
+            </div>
         </div>
     );
 }

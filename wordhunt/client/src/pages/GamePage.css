@@ -4,7 +4,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding-top: 20vh; /* Adjust for higher position */
+    padding-top: 15vh; /* Adjust for desired vertical position */
     margin-bottom: 5vh;
 }
 
@@ -13,5 +13,52 @@
     font-weight: bold;
     color: white;
     text-align: center;
-    margin: 10px 0;
+    margin: 20px 0;
+}
+
+/* Styling for the timer text */
+.game-page-timer {
+    font-size: 2rem;
+    color: white;
+    text-align: center;
+    margin-top: 15px;
+    font-weight: bold;
+}
+
+/* Word grid container alignment */
+.word-grid-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+}
+
+/* Word grid cell styling */
+.word-grid-cell {
+    width: 60px;
+    height: 60px;
+    border: 2px solid white;
+    background-color: #333;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 4px;
+    font-size: 1.8rem;
+    border-radius: 10px; /* Rounded corners for easier dragging */
+    transition: background-color 0.3s ease;
+}
+
+/* Highlight effect for selected cells */
+.word-grid-cell.selected {
+    background-color: rgba(255, 140, 0, 0.6); /* Semi-transparent orange highlight */
+}
+
+.word-grid {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.word-grid-row {
+    display: flex;
 }

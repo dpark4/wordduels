@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './WordGrid.css';
+// import './WordGrid.css';
 
 const WordGrid = ({ grid = [], onWordFormed, playerId, disabled }) => {
     const formattedGrid = grid.map(row => row.split(''));
