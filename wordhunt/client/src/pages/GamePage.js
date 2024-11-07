@@ -47,6 +47,11 @@ function GamePage() {
                 if (message.body === "game-ready") {
                     setGamePhase("countdown"); // Start 3-second countdown
                     setTimer(3);
+                } else if (message.body === "game-interrupted") {
+                    // Handle game interruption
+                    alert("Game has been interrupted. Returning to homepage.");
+                    leaveLobby(); // Leave lobby and navigate to homepage
+                    navigate("/"); // Redirect to the host homepage
                 }
             });
 
