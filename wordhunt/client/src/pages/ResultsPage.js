@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import './ResultsPage.css';
 
 function ResultsPage() {
     const { lobbyId } = useParams();
+    const navigate = useNavigate();
     const [playerOneResults, setPlayerOneResults] = useState({ submittedWords: [], score: 0 });
     const [playerTwoResults, setPlayerTwoResults] = useState({ submittedWords: [], score: 0 });
     const [players, setPlayers] = useState({ playerOne: '', playerTwo: '' });
@@ -19,29 +20,42 @@ function ResultsPage() {
             .catch(error => console.error("Error fetching results:", error));
     }, [lobbyId]);
 
+    const handleReturnHome = () => {
+        navigate('/');
+    };
+
     return (
-        <div className="results-container">
-            <div className="results-column">
-                <h2>{players.playerOne}</h2>
-                <p>Score: {playerOneResults.score}</p>
-                <h3>Submitted Words:</h3>
-                <ul>
-                    {playerOneResults.submittedWords.map((word, index) => (
-                        <li key={index}>{word}</li>
-                    ))}
-                </ul>
+        <div className="results-page-container">
+            <h2 className="results-title">Game Results</h2>
+            <div className="results-box">
+                <div className="results-column">
+                    <h3 className="player-name">{players.playerOne}</h3>
+                    <p className="score">Score: {playerOneResults.score}</p>
+                    <h4 className="submitted-words-title">Submitted Words:</h4>
+                    <ul className="submitted-words-list">
+                        {playerOneResults.submittedWords.map((word, index) => (
+                            <li key={index} className="submitted-word-item">{word}</li>
+                        ))}
+                    </ul>
+                </div>
+
+                <div className="divider" />
+
+                <div className="results-column">
+                    <h3 className="player-name">{players.playerTwo}</h3>
+                    <p className="score">Score: {playerTwoResults.score}</p>
+                    <h4 className="submitted-words-title">Submitted Words:</h4>
+                    <ul className="submitted-words-list">
+                        {playerTwoResults.submittedWords.map((word, index) => (
+                            <li key={index} className="submitted-word-item">{word}</li>
+                        ))}
+                    </ul>
+                </div>
             </div>
 
-            <div className="results-column">
-                <h2>{players.playerTwo}</h2>
-                <p>Score: {playerTwoResults.score}</p>
-                <h3>Submitted Words:</h3>
-                <ul>
-                    {playerTwoResults.submittedWords.map((word, index) => (
-                        <li key={index}>{word}</li>
-                    ))}
-                </ul>
-            </div>
+            <button className="return-home-button" onClick={handleReturnHome}>
+                Return to Home
+            </button>
         </div>
     );
 }
