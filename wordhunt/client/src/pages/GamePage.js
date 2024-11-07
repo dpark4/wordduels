@@ -49,10 +49,14 @@ function GamePage() {
                     setGamePhase("countdown"); // Start 3-second countdown
                     setTimer(3);
                 } else if (message.body === "game-interrupted") {
-                    // Handle game interruption
-                    alert("Game has been interrupted. Returning to homepage.");
-                    leaveLobby(); // Leave lobby and navigate to homepage
-                    navigate("/"); // Redirect to the host homepage
+                    // Check if there’s less than 20 seconds remaining on the timer
+                    if (timer >= 20) {
+                        alert("Game has been interrupted. Returning to homepage.");
+                        leaveLobby(); // Leave lobby and navigate to homepage
+                        navigate("/"); // Redirect to the host homepage
+                    } else {
+                        console.log("Game interruption ignored due to less than 20 seconds remaining.");
+                    }
                 }
             });
 

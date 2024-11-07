@@ -5,16 +5,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+// Other imports remain the same
 @Service
 public class LobbyManager {
 
     private final Map<Integer, Lobby> lobbies;
     private final SimpMessagingTemplate messagingTemplate;
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1); // Scheduler for delayed cleanup
 
     public LobbyManager(SimpMessagingTemplate messagingTemplate) {
         this.messagingTemplate = messagingTemplate;
@@ -52,11 +57,15 @@ public class LobbyManager {
             // Notify remaining players that the game is interrupted
             messagingTemplate.convertAndSend("/topic/lobbies/" + lobbyId, "game-interrupted");
 
-            // Check if the lobby is now empty after notifying, then reset the game state and scores
+            // Schedule to reset game state and scores after a grace period
             if (lobby.getPlayers().isEmpty()) {
-                lobby.setGameState(null);  // Clear the game state
-                // lobby.getGameState().getPlayers().forEach((id, player) -> player.setScore(0)); // Reset scores
-                System.out.println("Game state and scores reset for lobby " + lobbyId);
+                scheduler.schedule(() -> {
+                    // Only clear if the lobby is still empty (no one rejoined during the grace period)
+                    if (lobby.getPlayers().isEmpty()) {
+                        lobby.setGameState(null);  // Clear the game state after the grace period
+                        System.out.println("Game state and scores reset for lobby " + lobbyId);
+                    }
+                }, 5, TimeUnit.SECONDS); // Grace period of 10 seconds
             }
         }
     }
