@@ -1,4 +1,4 @@
-# wordhuntpremium
-wordhunt but better
+# Word Duels
 
-using enable2k dictionary 
+
+Implemented multiplayer game, Word Duels, using Java Spring Boot, JavaScript, enable2k dictionary. 
